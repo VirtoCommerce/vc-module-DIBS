@@ -76,7 +76,7 @@ namespace DiBs.Managers
             get { return GetSetting(merchantId); }
         }
 
-        public string FormDecoarator
+        public string FormDecorator
         {
             get { return GetSetting(formDesign); }
         }
@@ -155,7 +155,7 @@ namespace DiBs.Managers
                 reqparm.Add(currencyFormDataName, context.Order.Currency.ToString());
                 reqparm.Add(languageFormDataName, context.Store.DefaultLanguage.Substring(0, 2));
                 reqparm.Add(md5KeyFormDataName, md5Hash);
-                reqparm.Add(decoratorFormDataName, FormDecoarator);
+                reqparm.Add(decoratorFormDataName, FormDecorator);
 
                 if (Mode == "test")
                 {
@@ -166,7 +166,7 @@ namespace DiBs.Managers
                 var checkoutform = string.Empty;
                                 
                 checkoutform += string.Format("<form name='dibs' action='{0}' method='POST' charset='UTF-8'>", RedirectUrl);
-                checkoutform += "<p>You'll be redirected to DIBS payment in a moment. If not, click the 'Procced' button...</p>";
+                checkoutform += "<p>You'll be redirected to DIBS payment in a moment. If not, click the 'Proceed' button...</p>";
 
                 const string paramTemplateString = "<INPUT TYPE='hidden' name='{0}' value='{1}'>";
                 foreach (string key in reqparm)

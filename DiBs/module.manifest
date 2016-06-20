@@ -31,19 +31,19 @@
                 <valueType>string</valueType>
                 <defaultValue>https://payment.architrade.com/paymentweb/start.action</defaultValue>
                 <title>DIBS FlexWin URL</title>
-                <description>DIBS redirect url to FlexWin</description>
+                <description>DIBS redirect URL to FlexWin</description>
             </setting>
             <setting>
                 <name>DiBs.AcceptUrl</name>
                 <valueType>string</valueType>
-                <title>Accept Url</title>
-                <description>Accept Url</description>
+                <title>Accept URL</title>
+                <description>If the payment is accepted and the customer is leaving FlexWin, they will be sent to this URL. Provide absolute URL</description>
             </setting>
             <setting>
                 <name>DiBs.CallbackUrl</name>
                 <valueType>string</valueType>
-                <title>Callback Url</title>
-                <description>Callback Url</description>
+                <title>Callback URL</title>
+                <description>Automatic callback URL after a payment was authorized with DIBS. Provide absolute URL to your {VC manager URL}/api/dibs/callback</description>
             </setting>
             <setting>
                 <name>DiBs.MerchantId</name>

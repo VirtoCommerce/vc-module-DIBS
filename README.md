@@ -8,8 +8,8 @@ Installing the module:
 
 # Settings
 * **DIBS FlexWin URL** - DIBS redirect url to FlexWin
-* **Accept Url**
-* **Callback Url**
+* **Accept URL** - If the payment is accepted and the customer is leaving FlexWin, they will be sent to this URL. Provide absolute URL
+* **Callback URL** - Automatic callback URL after a payment was authorized with DIBS. Provide absolute URL to your {VC manager URL}/api/dibs/callback
 * **Merchant id** - DIBS provided merchant id
 * **MD5 Key1** - MD5 Key1 can be found in DIBS Admin: Integration / MD5 Keys
 * **MD5 Key2** - MD5 Key2 can be found in DIBS Admin: Integration / MD5 Keys
