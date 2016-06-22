@@ -105,11 +105,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\DiBs.jpg" />
     <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <Content Include="Content\DIBS_logo_blue_RGB.png" />
     <Content Include="module.manifest">
       <SubType>Designer</SubType>
     </Content>

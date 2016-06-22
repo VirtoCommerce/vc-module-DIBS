@@ -27,7 +27,7 @@ namespace DiBs
             {
                 Name = "DIBS payment gateway",
                 Description = "DIBS payment gateway integration",
-                LogoUrl = "http://tech.dibspayment.com/sites/tech/files/pictures/LOGO/DIBS/PNG/DIBS_logo_blue_RGB.png",
+                LogoUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-module-DIBS/master/DiBs/Content/DIBS_logo_blue_RGB.png",
                 Settings = settings,
                 IsActive = false
             };
