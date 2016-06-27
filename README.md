@@ -6,6 +6,9 @@ Installing the module:
 * Automatically: in VC Manager go to Configuration -> Modules -> DiBs payment gateway -> Install
 * Manually: download module zip package from https://github.com/VirtoCommerce/vc-module-avatax/releases. In VC Manager go to Configuration -> Modules -> Advanced -> upload module package -> Install.
 
+# Module management and settings UI
+![image](https://cloud.githubusercontent.com/assets/5801549/16379653/76ba16dc-3c7b-11e6-80aa-b11fdf76abe5.png)
+
 # Settings
 * **DIBS FlexWin URL** - DIBS redirect url to FlexWin
 * **Accept URL** - If the payment is accepted and the customer is leaving FlexWin, they will be sent to this URL. Provide absolute URL
