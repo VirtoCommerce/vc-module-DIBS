@@ -4,7 +4,7 @@ DIBS module provides integration with <a href="http://www.dibspayment.com" targe
 # Installation
 Installing the module:
 * Automatically: in VC Manager go to Configuration -> Modules -> DiBs payment gateway -> Install
-* Manually: download module zip package from https://github.com/VirtoCommerce/vc-module-avatax/releases. In VC Manager go to Configuration -> Modules -> Advanced -> upload module package -> Install.
+* Manually: download module zip package from https://github.com/VirtoCommerce/vc-module-DIBS/releases. In VC Manager go to Configuration -> Modules -> Advanced -> upload module package -> Install.
 
 # Module management and settings UI
 ![image](https://cloud.githubusercontent.com/assets/5801549/16379653/76ba16dc-3c7b-11e6-80aa-b11fdf76abe5.png)
@@ -18,6 +18,13 @@ Installing the module:
 * **MD5 Key2** - MD5 Key2 can be found in DIBS Admin: Integration / MD5 Keys
 * **Mode** - Set payment mode. 'test' for test purposes. 'live' - production setting.
 * **Form Design** - Payment form design available from DIBS. Possible values are "default", "basal", "rich" and "responsive"
+
+# DIBS configuration
+These settings on DIBS Administration site must be configured as following:
+* Integration > FlexWin > FlexWin settings > "**Skip accept page**" has to be checked
+* Integration > Return Values > "**Order ID**" has to be checked
+* Integration > Return Values > "**All fields exclusive of card information** ..." has to be checked
+
 
 
 # License
