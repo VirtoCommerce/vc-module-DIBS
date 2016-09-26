@@ -18,11 +18,13 @@ namespace Dibs.Controllers
     {
         private const string dibsCode = "DIBS";
         private readonly ICustomerOrderService _customerOrderService;
+        private readonly ICustomerOrderSearchService _customerOrderSearchService;
         private readonly IStoreService _storeService;
 
-        public DibsController(ICustomerOrderService customerOrderService, IStoreService storeService)
+        public DibsController(ICustomerOrderService customerOrderService, IStoreService storeService, ICustomerOrderSearchService customerOrderSearchService)
         {
             _customerOrderService = customerOrderService;
+            _customerOrderSearchService = customerOrderSearchService;
             _storeService = storeService;
         }
 
@@ -32,9 +34,9 @@ namespace Dibs.Controllers
         public IHttpActionResult RegisterPayment()
         {
             var orderId = HttpContext.Current.Request.Form["orderid"];
-            var order = _customerOrderService.GetByOrderNumber(orderId, CustomerOrderResponseGroup.Full);
+            var order = _customerOrderSearchService.SearchCustomerOrders(new CustomerOrderSearchCriteria { Number = orderId }).Results.FirstOrDefault();
             if (order == null)
-                order = _customerOrderService.GetById(orderId, CustomerOrderResponseGroup.Full);
+                order = _customerOrderService.GetByIds(new[] { orderId }).FirstOrDefault();
             if (order == null)
             {
                 throw new NullReferenceException("Order not found");
@@ -80,7 +82,7 @@ namespace Dibs.Controllers
 
                 if (retVal != null && retVal.IsSuccess)
                 {
-                    _customerOrderService.Update(new CustomerOrder[] { order });
+                    _customerOrderService.SaveChanges(new CustomerOrder[] { order });
                     return Ok();
                 }
             }
