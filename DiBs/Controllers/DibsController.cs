@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DiBs.Managers;
+using System;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
@@ -31,10 +32,8 @@ namespace Dibs.Controllers
         [AllowAnonymous]
         public IHttpActionResult RegisterPayment()
         {
-            var orderId = HttpContext.Current.Request.Form["orderid"];
-            var order = _customerOrderService.GetByOrderNumber(orderId, CustomerOrderResponseGroup.Full);
-            if (order == null)
-                order = _customerOrderService.GetById(orderId, CustomerOrderResponseGroup.Full);
+            var orderId = HttpContext.Current.Request.Form[DibsPaymentMethod.orderInternalIdFormDataName];
+            var order = _customerOrderService.GetByIds(new[] { orderId }).FirstOrDefault();
             if (order == null)
             {
                 throw new NullReferenceException("Order not found");
@@ -80,7 +79,7 @@ namespace Dibs.Controllers
 
                 if (retVal != null && retVal.IsSuccess)
                 {
-                    _customerOrderService.Update(new CustomerOrder[] { order });
+                    _customerOrderService.SaveChanges(new CustomerOrder[] { order });
                     return Ok();
                 }
             }

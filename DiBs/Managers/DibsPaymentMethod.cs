@@ -28,7 +28,7 @@ namespace DiBs.Managers
         private const string merchantIdFormDataName = "merchant";
         private const string amountFormDataName = "amount";
         private const string orderIdFormDataName = "orderid";
-        private const string orderInternalIdFormDataName = "orderinternalid";
+        internal const string orderInternalIdFormDataName = "s_orderinternalid";
         private const string currencyFormDataName = "currency";
         private const string testModeFormDataName = "test";
         private const string languageFormDataName = "lang";
@@ -164,7 +164,7 @@ namespace DiBs.Managers
 
                 //build form to post to FlexWin
                 var checkoutform = string.Empty;
-                                
+
                 checkoutform += string.Format("<form name='dibs' action='{0}' method='POST' charset='UTF-8'>", RedirectUrl);
                 checkoutform += "<p>You'll be redirected to DIBS payment in a moment. If not, click the 'Proceed' button...</p>";
 
@@ -175,7 +175,7 @@ namespace DiBs.Managers
                 checkoutform += "</form>";
 
                 checkoutform += "<script language='javascript'>document.dibs.submit();</script>";
-                                
+
                 retVal.HtmlForm = checkoutform;
                 retVal.IsSuccess = true;
                 retVal.NewPaymentStatus = PaymentStatus.Pending;

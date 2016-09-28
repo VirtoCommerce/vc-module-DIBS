@@ -1,24 +1,25 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <module>
     <id>DiBs</id>
-    <version>2.11.0</version>
-    <platformVersion>2.11.0</platformVersion>
+    <version>2.12.0</version>
+    <platformVersion>2.12.0</platformVersion>
     <dependencies>
-        <dependency id="VirtoCommerce.Core" version="2.11.0" />
+        <dependency id="VirtoCommerce.Core" version="2.17.0" /> 
     </dependencies>
 
     <title>DiBs payment gateway</title>
     <description>APIs and UI for DiBs payment gateway</description>
     <authors>
         <author>Virto Commerce</author>
+        <author>Egidijus Mažeika</author>
     </authors>
     <owners>
         <owner>Virto Commerce</owner>
     </owners>
-    <projectUrl>http://virtocommerce.com/</projectUrl>
+    <projectUrl>https://github.com/VirtoCommerce/vc-module-DIBS</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/VirtoCommerce/vc-module-DIBS/master/DiBs/Content/DIBS_logo_blue_RGB.png</iconUrl>
     <releaseNotes>First version.</releaseNotes>
-    <copyright>Copyright © 2011-2015 Virto Commerce. All rights reserved</copyright>
+    <copyright>Copyright © 2011-2016 Virto Commerce. All rights reserved</copyright>
     <tags>dibs payment gateway</tags>
 
     <assemblyFile>DiBs.dll</assemblyFile>
@@ -36,12 +37,14 @@
             <setting>
                 <name>DiBs.AcceptUrl</name>
                 <valueType>string</valueType>
+                <defaultValue>{storefront URL}/cart/externalpaymentcallback</defaultValue>
                 <title>Accept URL</title>
-                <description>If the payment is accepted and the customer is leaving FlexWin, they will be sent to this URL. Provide absolute URL</description>
+                <description>If the payment is accepted and the customer is leaving FlexWin, redirect to this URL. Provide absolute URL to your {storefront URL}/cart/externalpaymentcallback</description>
             </setting>
             <setting>
                 <name>DiBs.CallbackUrl</name>
                 <valueType>string</valueType>
+                <defaultValue>{VC manager URL}/api/dibs/callback</defaultValue>
                 <title>Callback URL</title>
                 <description>Automatic callback URL after a payment was authorized with DIBS. Provide absolute URL to your {VC manager URL}/api/dibs/callback</description>
             </setting>
