@@ -21,7 +21,6 @@ Installing the module:
 
 # DIBS configuration
 These settings on DIBS Administration site must be configured as following:
-* Integration > FlexWin > FlexWin settings > "**Skip accept page**" has to be checked
 * Integration > Return Values > "**Order ID**" has to be checked
 * Integration > Return Values > "**All fields exclusive of card information** ..." has to be checked
 
