@@ -178,7 +178,7 @@ namespace DiBs.Managers
 
                 retVal.HtmlForm = checkoutform;
                 retVal.IsSuccess = true;
-                retVal.NewPaymentStatus = PaymentStatus.Pending;
+                retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Pending;
             }
             return retVal;
         }
