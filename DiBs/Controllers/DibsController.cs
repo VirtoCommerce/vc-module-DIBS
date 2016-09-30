@@ -59,7 +59,7 @@ namespace Dibs.Controllers
                 var validateResult = paymentMethod.ValidatePostProcessRequest(parameters);
                 var paymentOuterId = validateResult.OuterId;
 
-                var payment = order.InPayments.FirstOrDefault(x => x.GatewayCode == dibsCode && (int)(x.Sum * 100) == Convert.ToInt32(parameters["amount"], CultureInfo.InvariantCulture));
+                var payment = order.InPayments.FirstOrDefault(x => x.GatewayCode == dibsCode && DibsPaymentMethod.MoneyToString(x.Sum) == parameters["amount"]);
 
                 if (payment == null)
                 {
