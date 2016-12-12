@@ -178,7 +178,14 @@ namespace DiBs.Managers
 
         public static Iso4217Definition LookupByCode(string code)
         {
-            return DefinitionCollection.SingleOrDefault(d => d.Code == code.ToUpper()) ?? Iso4217Definition.NotFound();
+            if (string.IsNullOrEmpty(code))
+            {
+                return Iso4217Definition.NotFound();
+            }
+            else
+            {
+                return DefinitionCollection.SingleOrDefault(d => d.Code == code.ToUpper()) ?? Iso4217Definition.NotFound();
+            }
         }
 
         public static Iso4217Definition LookupByNumber(int number)
