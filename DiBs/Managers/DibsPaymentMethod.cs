@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
+using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 
 namespace DiBs.Managers
@@ -10,6 +14,8 @@ namespace DiBs.Managers
     {
         private const string md5ParameterString = "merchant={0}&orderid={1}&currency={2}&amount={3}";
         private const string md5ResponseString = "transact={0}&amount={1}&currency={2}";
+        private const string md5PaymentOperationRequestParameterString = "merchant={0}&orderid={1}&transact={2}&amount={3}";
+        private const string md5VoidOperationRequestParameterString = "merchant={0}&orderid={1}&transact={2}";
 
         #region constants
 
@@ -21,6 +27,8 @@ namespace DiBs.Managers
         private const string md5Key2 = "DiBs.MD5Key2";
         private const string merchantId = "DiBs.MerchantId";
         private const string formDesign = "DiBs.FormDesign";
+        private const string loginApiUser = "DiBs.ApiUser.Login";
+        private const string passwordApiUser = "DiBs.ApiUser.Password";
 
         private const string md5KeyFormDataName = "md5key";
         private const string acceptUrlFormDataName = "accepturl";
@@ -28,6 +36,7 @@ namespace DiBs.Managers
         private const string merchantIdFormDataName = "merchant";
         private const string amountFormDataName = "amount";
         private const string orderIdFormDataName = "orderid";
+        private const string transactFormDataName = "transact";
         internal const string orderInternalIdFormDataName = "s_orderinternalid";
         private const string currencyFormDataName = "currency";
         private const string testModeFormDataName = "test";
@@ -41,83 +50,116 @@ namespace DiBs.Managers
 
         #region settings
 
-        public string RedirectUrl
-        {
-            get { return GetSetting(redirectUrl); }
-        }
+        public string RedirectUrl => GetSetting(redirectUrl);
 
-        public string AcceptUrl
-        {
-            get { return GetSetting(acceptUrl); }
-        }
+        public string AcceptUrl => GetSetting(acceptUrl);
 
-        public string Mode
-        {
-            get { return GetSetting(mode); }
-        }
+        public string Mode => GetSetting(mode);
 
-        public string CallbackUrl
-        {
-            get { return GetSetting(callbackUrl); }
-        }
+        public string CallbackUrl => GetSetting(callbackUrl);
 
-        public string MD5Key1
-        {
-            get { return GetSetting(md5Key1); }
-        }
+        public string MD5Key1 => GetSetting(md5Key1);
 
-        public string MD5Key2
-        {
-            get { return GetSetting(md5Key2); }
-        }
+        public string MD5Key2 => GetSetting(md5Key2);
 
-        public string MerchantId
-        {
-            get { return GetSetting(merchantId); }
-        }
+        public string MerchantId => GetSetting(merchantId);
 
-        public string FormDecorator
-        {
-            get { return GetSetting(formDesign); }
-        }
+        public string FormDecorator => GetSetting(formDesign);
+
+        public string LoginApiUser => GetSetting(loginApiUser);
+
+        public string PasswordApiUser => GetSetting(passwordApiUser);
 
         #endregion
 
-        public override PaymentMethodGroupType PaymentMethodGroupType
-        {
-            get
-            {
-                return PaymentMethodGroupType.Alternative;
-            }
-        }
+        public override PaymentMethodGroupType PaymentMethodGroupType => PaymentMethodGroupType.Alternative;
 
-        public override PaymentMethodType PaymentMethodType
+        public override PaymentMethodType PaymentMethodType => PaymentMethodType.PreparedForm;
+
+        private string GetOrderNumber(PaymentIn payment)
         {
-            get
+            var orderNumberProperty = payment.DynamicProperties.FirstOrDefault(x => x.Name == "OrderNumber");
+            if (orderNumberProperty != null)
             {
-                return PaymentMethodType.PreparedForm;
+                return (string)orderNumberProperty.Values.First()?.Value;
             }
+
+            return null;
         }
 
         public override CaptureProcessPaymentResult CaptureProcessPayment(CaptureProcessPaymentEvaluationContext context)
         {
-            throw new NotImplementedException();
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            if (context.Payment == null)
+                throw new ArgumentNullException(nameof(context.Payment));
+
+            string orderNumber = GetOrderNumber(context.Payment);
+            if (orderNumber == null)
+                throw new ArgumentNullException("OrderNumber");
+
+            var retVal = new CaptureProcessPaymentResult();
+
+            if (!context.Payment.IsApproved && (context.Payment.PaymentStatus == PaymentStatus.Authorized || context.Payment.PaymentStatus == PaymentStatus.Cancelled))
+            {
+                try
+                {
+                    var param = new NameValueCollection
+                    {
+                        {merchantIdFormDataName, MerchantId},
+                        {amountFormDataName, MoneyToString(context.Payment.Sum)},
+                        {transactFormDataName, context.Payment.OuterId},
+                        {orderIdFormDataName, orderNumber}
+                    };
+
+                    var md5Base = string.Format(md5PaymentOperationRequestParameterString, param[merchantIdFormDataName], param[orderIdFormDataName], param[transactFormDataName], param[amountFormDataName]);
+                    param.Add(md5KeyFormDataName, CalculateMD5Hash(md5Base));
+
+                    using (WebClient client = new WebClient())
+                    {
+                        client.Credentials = new NetworkCredential(LoginApiUser, PasswordApiUser);
+                        byte[] responsebytes = client.UploadValues("https://payment.architrade.com/cgi-bin/capture.cgi", "POST", param);
+                        string responsebody = Encoding.UTF8.GetString(responsebytes);
+                        var response = HttpUtility.ParseQueryString(responsebody);
+                        if (response["status"] == "ACCEPTED" && response["result"] == "0")
+                        {
+                            retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Paid;
+                            context.Payment.CapturedDate = DateTime.UtcNow;
+                            context.Payment.IsApproved = true;
+                            retVal.IsSuccess = true;
+                        }
+                        else
+                        {
+                            throw new Exception($"Dibs capture payment request failed. Response data: {responsebody}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retVal.ErrorMessage = ex.Message;
+                }
+            }
+
+            return retVal;
         }
 
         public override PostProcessPaymentResult PostProcessPayment(PostProcessPaymentEvaluationContext context)
         {
-            var transactionId = context.Parameters["transact"];
+            if (context.Payment.PaymentStatus == PaymentStatus.Pending)
+            {
+                context.Payment.AuthorizedDate = DateTime.UtcNow;
 
-            var retVal = new PostProcessPaymentResult();
-            retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Paid;
-            context.Payment.CapturedDate = DateTime.UtcNow;
-            context.Payment.IsApproved = true;
-            retVal.OuterId = context.Payment.OuterId = transactionId;
-            context.Payment.AuthorizedDate = DateTime.UtcNow;
-            retVal.OrderId = context.Order.Number;
-            retVal.IsSuccess = ValidatePostProcessRequest(context.Parameters).IsSuccess;
+                return new PostProcessPaymentResult
+                {
+                    NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Authorized,
+                    OuterId = context.Payment.OuterId = context.Parameters[transactFormDataName],
+                    OrderId = context.Order.Number,
+                    IsSuccess = ValidatePostProcessRequest(context.Parameters).IsSuccess
+                };
+            }
 
-            return retVal;
+            throw new Exception($"Post process payment failed: payment status is {context.Payment.PaymentStatus}");
         }
 
         public override ProcessPaymentResult ProcessPayment(ProcessPaymentEvaluationContext context)
@@ -129,33 +171,25 @@ namespace DiBs.Managers
                 if (!(!string.IsNullOrEmpty(context.Store.SecureUrl) || !string.IsNullOrEmpty(context.Store.Url)))
                     throw new NullReferenceException("store must specify Url or SecureUrl property");
 
-                var baseStoreUrl = string.Empty;
-                if (!string.IsNullOrEmpty(context.Store.SecureUrl))
-                {
-                    baseStoreUrl = context.Store.SecureUrl;
-                }
-                else
-                {
-                    baseStoreUrl = context.Store.Url;
-                }
-
                 var orderId = context.Order.Number;
 
                 //get md5 hash passing the order number, currency ISO code and order total
                 var md5Hash = CalculateMD5Hash(orderId, context.Order.Currency, MoneyToString(context.Order.Total));
 
-                var reqparm = new NameValueCollection();
-                reqparm.Add(acceptUrlFormDataName, AcceptUrl);
-                reqparm.Add(callbackUrlFormDataName, CallbackUrl);
-                reqparm.Add(cancelUrlFormDataName, AcceptUrl);
-                reqparm.Add(merchantIdFormDataName, MerchantId);
-                reqparm.Add(orderIdFormDataName, orderId);
-                reqparm.Add(orderInternalIdFormDataName, context.Order.Id);
-                reqparm.Add(amountFormDataName, MoneyToString(context.Order.Total));
-                reqparm.Add(currencyFormDataName, context.Order.Currency.ToString());
-                reqparm.Add(languageFormDataName, context.Store.DefaultLanguage.Substring(0, 2));
-                reqparm.Add(md5KeyFormDataName, md5Hash);
-                reqparm.Add(decoratorFormDataName, FormDecorator);
+                var reqparm = new NameValueCollection
+                {
+                    {acceptUrlFormDataName, AcceptUrl},
+                    {callbackUrlFormDataName, CallbackUrl},
+                    {cancelUrlFormDataName, AcceptUrl},
+                    {merchantIdFormDataName, MerchantId},
+                    {orderIdFormDataName, orderId},
+                    {orderInternalIdFormDataName, context.Order.Id},
+                    {amountFormDataName, MoneyToString(context.Order.Total)},
+                    {currencyFormDataName, context.Order.Currency},
+                    {languageFormDataName, context.Store.DefaultLanguage.Substring(0, 2)},
+                    {md5KeyFormDataName, md5Hash},
+                    {decoratorFormDataName, FormDecorator}
+                };
 
                 if (Mode == "test")
                 {
@@ -165,7 +199,7 @@ namespace DiBs.Managers
                 //build form to post to FlexWin
                 var checkoutform = string.Empty;
 
-                checkoutform += string.Format("<form name='dibs' action='{0}' method='POST' charset='UTF-8'>", RedirectUrl);
+                checkoutform += $"<form name='dibs' action='{RedirectUrl}' method='POST' charset='UTF-8'>";
                 checkoutform += "<p>You'll be redirected to DIBS payment in a moment. If not, click the 'Proceed' button...</p>";
 
                 const string paramTemplateString = "<INPUT TYPE='hidden' name='{0}' value='{1}'>";
@@ -185,26 +219,138 @@ namespace DiBs.Managers
 
         public override RefundProcessPaymentResult RefundProcessPayment(RefundProcessPaymentEvaluationContext context)
         {
-            throw new NotImplementedException();
-        }
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
 
-        public override ValidatePostProcessRequestResult ValidatePostProcessRequest(NameValueCollection queryString)
-        {
-            var retVal = new ValidatePostProcessRequestResult();
-            retVal.OuterId = queryString["transact"];
+            if (context.Payment == null)
+                throw new ArgumentNullException(nameof(context.Payment));
 
-            //calculate hash by transaction id, currency code and amount
-            var md5Hash = CalculateResponseMD5Hash(queryString["transact"], queryString["currency"], queryString["amount"]);
+            string orderNumber = GetOrderNumber(context.Payment);
+            if (orderNumber == null)
+                throw new ArgumentNullException("OrderNumber");
 
-            //compare calculated hash with the passed in response authkey field
-            retVal.IsSuccess = md5Hash.Equals(queryString["authkey"]);
+            var retVal = new RefundProcessPaymentResult();
+
+            if (context.Payment.IsApproved && context.Payment.PaymentStatus == PaymentStatus.Paid)
+            {
+                try
+                {
+                    var param = new NameValueCollection
+                    {
+                        {merchantIdFormDataName, MerchantId},
+                        {transactFormDataName, context.Payment.OuterId},
+                        {amountFormDataName, MoneyToString(context.Payment.Sum)},
+                        {currencyFormDataName, context.Payment.Currency},
+                        {orderIdFormDataName, orderNumber},
+                        {"textreply", "yes"}
+                    };
+
+                    var md5Base = string.Format(md5PaymentOperationRequestParameterString, MerchantId, param[orderIdFormDataName], param[transactFormDataName], param[amountFormDataName]);
+                    param.Add(md5KeyFormDataName, CalculateMD5Hash(md5Base));
+
+                    using (WebClient client = new WebClient())
+                    {
+                        client.Credentials = new NetworkCredential(LoginApiUser, PasswordApiUser);
+                        byte[] responsebytes = client.UploadValues("https://payment.architrade.com/cgi-adm/refund.cgi", "POST", param);
+                        string responsebody = Encoding.UTF8.GetString(responsebytes);
+                        var response = HttpUtility.ParseQueryString(responsebody);
+                        if (response["status"] == "ACCEPTED" && response["result"] == "0")
+                        {
+                            retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Refunded;
+                            context.Payment.ModifiedDate = DateTime.UtcNow;
+                            context.Payment.IsApproved = false;
+                            retVal.IsSuccess = true;
+                        }
+                        else
+                        {
+                            throw new Exception($"Dibs refund payment request failed. Response data: {responsebody}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retVal.ErrorMessage = ex.Message;
+                }
+            }
 
             return retVal;
         }
 
+        public override ValidatePostProcessRequestResult ValidatePostProcessRequest(NameValueCollection queryString)
+        {
+            //calculate hash by transaction id, currency code and amount
+            var md5Hash = CalculateResponseMD5Hash(queryString[transactFormDataName], queryString[currencyFormDataName], queryString[amountFormDataName]);
+
+            return new ValidatePostProcessRequestResult
+            {
+                OuterId = queryString[transactFormDataName],
+                IsSuccess = md5Hash.Equals(queryString["authkey"]) //compare calculated hash with the passed in response authkey field
+            };
+        }
+
         public override VoidProcessPaymentResult VoidProcessPayment(VoidProcessPaymentEvaluationContext context)
         {
-            throw new NotImplementedException();
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            if (context.Payment == null)
+                throw new ArgumentNullException(nameof(context.Payment));
+
+            string orderNumber = GetOrderNumber(context.Payment);
+            if (orderNumber == null)
+                throw new ArgumentNullException("OrderNumber");
+
+            var retVal = new VoidProcessPaymentResult();
+
+            if (!context.Payment.IsApproved && context.Payment.PaymentStatus == PaymentStatus.Authorized)
+            {
+                try
+                {
+                    var param = new NameValueCollection
+                    {
+                        {merchantIdFormDataName, MerchantId},
+                        {transactFormDataName, context.Payment.OuterId},
+                        {orderIdFormDataName, orderNumber}
+                    };
+
+                    var md5Base = string.Format(md5VoidOperationRequestParameterString, param[merchantIdFormDataName], param[orderIdFormDataName], param[transactFormDataName]);
+                    param.Add(md5KeyFormDataName, CalculateMD5Hash(md5Base));
+
+                    using (WebClient client = new WebClient())
+                    {
+                        client.Credentials = new NetworkCredential(LoginApiUser, PasswordApiUser);
+                        byte[] responsebytes = client.UploadValues("https://payment.architrade.com/cgi-adm/cancel.cgi", "POST", param);
+                        string responsebody = Encoding.UTF8.GetString(responsebytes);
+                        var response = HttpUtility.ParseQueryString(responsebody);
+                        if (response["status"] == "ACCEPTED" && response["result"] == "0")
+                        {
+                            retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Cancelled;
+                            context.Payment.CancelledDate = DateTime.UtcNow;
+                            retVal.IsSuccess = true;
+                        }
+                        else
+                        {
+                            throw new Exception($"Dibs cancel request failed. Response data: {responsebody}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retVal.ErrorMessage = ex.Message;
+                }
+            }
+            else if (context.Payment.IsApproved)
+            {
+                retVal.ErrorMessage = "Payment already approved, use refund";
+                retVal.NewPaymentStatus = PaymentStatus.Paid;
+            }
+            else if (context.Payment.IsCancelled)
+            {
+                retVal.ErrorMessage = "Payment already canceled";
+                retVal.NewPaymentStatus = PaymentStatus.Voided;
+            }
+
+            return retVal;
         }
 
         private string GetMD5Hash(string datastr)
@@ -233,6 +379,11 @@ namespace DiBs.Managers
             return res;
         }
 
+        public string CalculateMD5Hash(string value)
+        {
+            return GetMD5Hash(MD5Key2 + GetMD5Hash(MD5Key1 + value));
+        }
+
         private string CalculateMD5Hash(string orderId, string currency, string amount)
         {
             var md5 = string.Format(md5ParameterString, MerchantId, orderId, currency, amount);
@@ -255,8 +406,9 @@ namespace DiBs.Managers
             return md5;
         }
 
-        internal static string MoneyToString(decimal d) {
-            return ((int)(Math.Round(d * 100, 0, MidpointRounding.AwayFromZero))).ToString();
+        internal static string MoneyToString(decimal d)
+        {
+            return ((int)Math.Round(d * 100, 0, MidpointRounding.AwayFromZero)).ToString();
         }
     }
 }
