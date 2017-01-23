@@ -10,8 +10,8 @@
     <title>DiBs payment gateway</title>
     <description>APIs and UI for DiBs payment gateway</description>
     <authors>
-        <author>Virto Commerce</author>
         <author>Egidijus Mažeika</author>
+        <author>Alexey Antonov</author>
     </authors>
     <owners>
         <owner>Virto Commerce</owner>
