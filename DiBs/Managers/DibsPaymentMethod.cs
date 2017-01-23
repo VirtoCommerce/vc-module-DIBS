@@ -76,17 +76,6 @@ namespace DiBs.Managers
 
         public override PaymentMethodType PaymentMethodType => PaymentMethodType.PreparedForm;
 
-        private string GetOrderNumber(PaymentIn payment)
-        {
-            var orderNumberProperty = payment.DynamicProperties.FirstOrDefault(x => x.Name == "OrderNumber");
-            if (orderNumberProperty != null)
-            {
-                return (string)orderNumberProperty.Values.First()?.Value;
-            }
-
-            return null;
-        }
-
         public override CaptureProcessPaymentResult CaptureProcessPayment(CaptureProcessPaymentEvaluationContext context)
         {
             if (context == null)
@@ -95,9 +84,8 @@ namespace DiBs.Managers
             if (context.Payment == null)
                 throw new ArgumentNullException(nameof(context.Payment));
 
-            string orderNumber = GetOrderNumber(context.Payment);
-            if (orderNumber == null)
-                throw new ArgumentNullException("OrderNumber");
+            if(context.Order == null)
+                throw new ArgumentNullException(nameof(context.Order));
 
             var retVal = new CaptureProcessPaymentResult();
 
@@ -110,7 +98,7 @@ namespace DiBs.Managers
                         {merchantIdFormDataName, MerchantId},
                         {amountFormDataName, MoneyToString(context.Payment.Sum)},
                         {transactFormDataName, context.Payment.OuterId},
-                        {orderIdFormDataName, orderNumber}
+                        {orderIdFormDataName, context.Order.Number}
                     };
 
                     var md5Base = string.Format(md5PaymentOperationRequestParameterString, param[merchantIdFormDataName], param[orderIdFormDataName], param[transactFormDataName], param[amountFormDataName]);
@@ -146,6 +134,15 @@ namespace DiBs.Managers
 
         public override PostProcessPaymentResult PostProcessPayment(PostProcessPaymentEvaluationContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            if (context.Payment == null)
+                throw new ArgumentNullException(nameof(context.Payment));
+
+            if (context.Order == null)
+                throw new ArgumentNullException(nameof(context.Order));
+
             if (context.Payment.PaymentStatus == PaymentStatus.Pending)
             {
                 context.Payment.AuthorizedDate = DateTime.UtcNow;
@@ -164,6 +161,9 @@ namespace DiBs.Managers
 
         public override ProcessPaymentResult ProcessPayment(ProcessPaymentEvaluationContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             var retVal = new ProcessPaymentResult();
 
             if (context.Order != null && context.Store != null && context.Payment != null)
@@ -225,9 +225,8 @@ namespace DiBs.Managers
             if (context.Payment == null)
                 throw new ArgumentNullException(nameof(context.Payment));
 
-            string orderNumber = GetOrderNumber(context.Payment);
-            if (orderNumber == null)
-                throw new ArgumentNullException("OrderNumber");
+            if (context.Order == null)
+                throw new ArgumentNullException(nameof(context.Order));
 
             var retVal = new RefundProcessPaymentResult();
 
@@ -241,7 +240,7 @@ namespace DiBs.Managers
                         {transactFormDataName, context.Payment.OuterId},
                         {amountFormDataName, MoneyToString(context.Payment.Sum)},
                         {currencyFormDataName, context.Payment.Currency},
-                        {orderIdFormDataName, orderNumber},
+                        {orderIdFormDataName, context.Order.Number},
                         {"textreply", "yes"}
                     };
 
@@ -296,9 +295,8 @@ namespace DiBs.Managers
             if (context.Payment == null)
                 throw new ArgumentNullException(nameof(context.Payment));
 
-            string orderNumber = GetOrderNumber(context.Payment);
-            if (orderNumber == null)
-                throw new ArgumentNullException("OrderNumber");
+            if (context.Order == null)
+                throw new ArgumentNullException(nameof(context.Order));
 
             var retVal = new VoidProcessPaymentResult();
 
@@ -310,7 +308,7 @@ namespace DiBs.Managers
                     {
                         {merchantIdFormDataName, MerchantId},
                         {transactFormDataName, context.Payment.OuterId},
-                        {orderIdFormDataName, orderNumber}
+                        {orderIdFormDataName, context.Order.Number}
                     };
 
                     var md5Base = string.Format(md5VoidOperationRequestParameterString, param[merchantIdFormDataName], param[orderIdFormDataName], param[transactFormDataName]);

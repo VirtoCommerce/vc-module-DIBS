@@ -131,8 +131,11 @@ namespace UnitTestProject
                 Payment = new PaymentIn
                 {
                     PaymentStatus = PaymentStatus.Authorized,
-                    OuterId = transact,
-                    DynamicProperties = { new DynamicObjectProperty { Name = "OrderNumber", Values = new List<DynamicPropertyObjectValue> { new DynamicPropertyObjectValue { Value = orderId } } } }
+                    OuterId = transact
+                },
+                Order = new CustomerOrder
+                {
+                    Number = orderId
                 }
             };
 
@@ -175,8 +178,11 @@ namespace UnitTestProject
                 {
                     Sum = 0.01m,
                     PaymentStatus = PaymentStatus.Authorized,
-                    OuterId = transact,
-                    DynamicProperties = { new DynamicObjectProperty { Name = "OrderNumber", Values = new List<DynamicPropertyObjectValue> { new DynamicPropertyObjectValue { Value = orderId } } } }
+                    OuterId = transact
+                },
+                Order = new CustomerOrder
+                {
+                    Number = orderId
                 }
             };
 
@@ -226,8 +232,11 @@ namespace UnitTestProject
                     IsApproved = true,
                     PaymentStatus = PaymentStatus.Paid,
                     OuterId = transact,
-                    Currency = currencyCode,
-                    DynamicProperties = { new DynamicObjectProperty {Name = "OrderNumber", Values = new List<DynamicPropertyObjectValue> {new DynamicPropertyObjectValue {Value = orderId} } } }
+                    Currency = currencyCode
+                },
+                Order = new CustomerOrder
+                {
+                    Number = orderId
                 }
             };
 
