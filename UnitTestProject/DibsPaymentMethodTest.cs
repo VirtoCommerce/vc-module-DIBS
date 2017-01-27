@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -10,9 +9,8 @@ using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Settings;
 using DiBs.Managers;
-using RestSharp.Extensions.MonoHttp;
 using System.Collections.Specialized;
-using VirtoCommerce.Platform.Core.DynamicProperties;
+using System.Web;
 
 namespace UnitTestProject
 {

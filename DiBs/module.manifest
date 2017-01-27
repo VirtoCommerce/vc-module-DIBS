@@ -2,7 +2,7 @@
 <module>
     <id>DiBs</id>
     <version>2.13.1</version>
-    <platformVersion>2.12.0</platformVersion>
+    <platformVersion>2.12.4</platformVersion>
     <dependencies>
       <dependency id="VirtoCommerce.Core" version="2.19.5" />
     </dependencies>
@@ -10,8 +10,8 @@
     <title>DiBs payment gateway</title>
     <description>APIs and UI for DiBs payment gateway</description>
     <authors>
-        <author>Virto Commerce</author>
         <author>Egidijus Mažeika</author>
+        <author>Alexey Antonov</author>
     </authors>
     <owners>
         <owner>Virto Commerce</owner>
