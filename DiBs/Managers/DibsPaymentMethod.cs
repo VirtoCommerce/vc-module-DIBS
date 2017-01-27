@@ -156,6 +156,15 @@ namespace DiBs.Managers
                 };
             }
 
+            if (context.Payment.PaymentStatus == PaymentStatus.Authorized)
+            {
+                return new PostProcessPaymentResult
+                {
+                    OrderId = context.Order.Number,
+                    IsSuccess = ValidatePostProcessRequest(context.Parameters).IsSuccess
+                };
+            }
+
             throw new Exception($"Post process payment failed: payment status is {context.Payment.PaymentStatus}");
         }
 
