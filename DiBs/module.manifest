@@ -6,7 +6,6 @@
     <dependencies>
       <dependency id="VirtoCommerce.Core" version="2.19.5" />
     </dependencies>
-
     <title>DiBs payment gateway</title>
     <description>APIs and UI for DiBs payment gateway</description>
     <authors>
