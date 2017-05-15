@@ -55,13 +55,13 @@
             </setting>
             <setting>
                 <name>DiBs.MD5Key1</name>
-                <valueType>string</valueType>
+                <valueType>securestring</valueType>
                 <title>MD5 Key1</title>
                 <description>MD5 Key1 can be found in DIBS Admin: Integration / MD5 Keys</description>
             </setting>
             <setting>
                 <name>DiBs.MD5Key2</name>
-                <valueType>string</valueType>
+                <valueType>securestring</valueType>
                 <title>MD5 Key2</title>
                 <description>MD5 Key2 can be found in DIBS Admin: Integration / MD5 Keys</description>
             </setting>
@@ -95,7 +95,7 @@
             </setting>
             <setting>
                 <name>DiBs.ApiUser.Password</name>
-                <valueType>string</valueType>
+                <valueType>securestring</valueType>
                 <title>Api user password</title>
             </setting>
         </group>

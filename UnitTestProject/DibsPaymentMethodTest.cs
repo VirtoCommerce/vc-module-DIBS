@@ -300,11 +300,13 @@ namespace UnitTestProject
                 new SettingEntry
                 {
                     Name = "DiBs.MD5Key1",
+                    ValueType = SettingValueType.SecureString,
                     Value = MD5Key1
                 },
                 new SettingEntry
                 {
                     Name = "DiBs.MD5Key2",
+                    ValueType = SettingValueType.SecureString,
                     Value = MD5Key2
                 },
                 new SettingEntry
@@ -325,6 +327,7 @@ namespace UnitTestProject
                 new SettingEntry
                 {
                     Name = "DiBs.ApiUser.Password",
+                    ValueType = SettingValueType.SecureString,
                     Value = PasswordApiUser
                 }
             };
