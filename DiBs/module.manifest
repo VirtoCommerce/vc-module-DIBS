@@ -15,7 +15,7 @@
     <owners>
         <owner>Virto Commerce</owner>
     </owners>
-    <projectUrl>https://github.com/VirtoCommerce/vc-module-DIBS</projectUrl>
+    <projectUrl>https://virtocommerce.com/apps/extensions/dibs-payment-gateway</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/VirtoCommerce/vc-module-DIBS/master/DiBs/Content/DIBS_logo_blue_RGB.png</iconUrl>
     <releaseNotes>First version.</releaseNotes>
     <copyright>Copyright © 2011-2016 Virto Commerce. All rights reserved</copyright>
