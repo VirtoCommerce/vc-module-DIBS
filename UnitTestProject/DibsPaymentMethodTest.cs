@@ -4,17 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Settings;
 using DiBs.Managers;
 using System.Collections.Specialized;
 using System.Web;
+using Xunit;
 
 namespace UnitTestProject
 {
-    [TestClass]
     public class DibsPaymentMethodTest
     {
         private string MerchantId = "12345678";
@@ -30,7 +29,7 @@ namespace UnitTestProject
 
         private DibsPaymentMethod PaymentMethod => GetPaymentMethod();
 
-        [TestMethod]
+        [Fact]
         public void PaymentTest()
         {
             var param = new NameValueCollection
@@ -56,10 +55,10 @@ namespace UnitTestProject
                 checkoutform += $"<INPUT TYPE='hidden' name='{key}' value='{param[key]}'>";
             checkoutform += "<button type='submit'>Proceed</button></form><script language='javascript'>document.dibs.submit();</script>";
 
-            Assert.IsNotNull(checkoutform);
+            Assert.NotNull(checkoutform);
         }
 
-        [TestMethod]
+        [Fact]
         public void ReauthPaymentTest()
         {
             /*<form method="post" action="https://payment.architrade.com/cgi-bin/reauth.cgi">
@@ -78,7 +77,7 @@ namespace UnitTestProject
             var requestUrl = "https://payment.architrade.com/cgi-bin/reauth.cgi";
             string res = ProcessRequest(param, requestUrl);
 
-            Assert.IsTrue(res.StartsWith("status=ACCEPTED"));
+            Assert.True(res.StartsWith("status=ACCEPTED"));
 
             /*  0 - Rejected by acquirer.
                 1 - Communication problems.
@@ -95,7 +94,7 @@ namespace UnitTestProject
                 20 - Cancelled by user at 3D Secure authentication step.*/
         }
 
-        [TestMethod]
+        [Fact]
         public void CancelTest()
         {
             /*<form method="post" action="https://login:password@payment.architrade.com/cgi-adm/cancel.cgi">
@@ -118,10 +117,10 @@ namespace UnitTestProject
             var requestUrl = $"https://payment.architrade.com/cgi-adm/cancel.cgi";
             string res = ProcessRequest(param, requestUrl, true);
 
-            Assert.IsTrue(res.StartsWith("status=ACCEPTED"));
+            Assert.True(res.StartsWith("status=ACCEPTED"));
         }
 
-        [TestMethod]
+        [Fact]
         public void PaymentCancelTest()
         {
             var context = new VoidProcessPaymentEvaluationContext
@@ -139,10 +138,10 @@ namespace UnitTestProject
 
             var result = PaymentMethod.VoidProcessPayment(context);
 
-            Assert.IsTrue(result.NewPaymentStatus == PaymentStatus.Cancelled);
+            Assert.True(result.NewPaymentStatus == PaymentStatus.Cancelled);
         }
 
-        [TestMethod]
+        [Fact]
         public void CaptureTest()
         {
             /*<form method="post" action=https://payment.architrade.com/cgi-bin/capture.cgi>
@@ -164,10 +163,10 @@ namespace UnitTestProject
             var requestUrl = $"https://payment.architrade.com/cgi-bin/capture.cgi";
             string res = ProcessRequest(param, requestUrl);
 
-            Assert.IsTrue(res.StartsWith("status=ACCEPTED"));
+            Assert.True(res.StartsWith("status=ACCEPTED"));
         }
 
-        [TestMethod]
+        [Fact]
         public void PaymentCaptureTest()
         {
             var context = new CaptureProcessPaymentEvaluationContext
@@ -186,10 +185,10 @@ namespace UnitTestProject
 
             var result = PaymentMethod.CaptureProcessPayment(context);
 
-            Assert.IsTrue(result.NewPaymentStatus == PaymentStatus.Paid);
+            Assert.True(result.NewPaymentStatus == PaymentStatus.Paid);
         }
 
-        [TestMethod]
+        [Fact]
         public void RefundTest()
         {
             /*<form method="post" action="https://login:password@payment.architrade.com/cgi-adm/refund.cgi">
@@ -216,10 +215,10 @@ namespace UnitTestProject
             var requestUrl = $"https://payment.architrade.com/cgi-adm/refund.cgi";
             string res = ProcessRequest(param, requestUrl, true);
 
-            Assert.IsTrue(res.StartsWith("status=ACCEPTED"));
+            Assert.True(res.StartsWith("status=ACCEPTED"));
         }
 
-        [TestMethod]
+        [Fact]
         public void PaymentRefundTest()
         {
             var context = new RefundProcessPaymentEvaluationContext
@@ -240,7 +239,7 @@ namespace UnitTestProject
 
             var result = PaymentMethod.RefundProcessPayment(context);
 
-            Assert.IsTrue(result.NewPaymentStatus == PaymentStatus.Refunded);
+            Assert.True(result.NewPaymentStatus == PaymentStatus.Refunded);
         }
 
         private string ProcessRequest(NameValueCollection param, string url, bool useApiCredential = false)
