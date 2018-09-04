@@ -146,6 +146,7 @@ namespace DiBs.Managers
             if (context.Payment.PaymentStatus == PaymentStatus.Pending)
             {
                 context.Payment.AuthorizedDate = DateTime.UtcNow;
+                context.Payment.Status = PaymentStatus.Authorized.ToString();
 
                 return new PostProcessPaymentResult
                 {
